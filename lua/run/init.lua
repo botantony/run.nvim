@@ -44,21 +44,22 @@ local function run(opts)
 	if mode == "err" then
 		local null = vim.loop.os_uname().version:match("Windows") and "NUL" or "/dev/null"
 		redirects = " 2>&1 > " .. null
-	elseif p.mode == "all" then
+	elseif mode == "all" then
 		redirects = " 2>&1"
 	end
 
 	local result = vim.fn.system(cmd .. redirects, input)
+	local buf = vim.api.nvim_create_buf(false, true)
 
 	vim.cmd("belowright split")
+	vim.api.nvim_win_set_buf(0, buf)
 
-	local buf = vim.api.nvim_get_current_buf()
 	vim.bo[buf].buftype = "nofile"
 	vim.bo[buf].bufhidden = "wipe"
 	vim.bo[buf].swapfile = false
 	vim.bo[buf].filetype = "runoutput"
 
-	vim.api.nvim_buf_set_lines(buf, 0, -1, false, vim.split(result, "\n"))
+	vim.api.nvim_buf_set_lines(buf, 0, -1, false, vim.split(result or "", "\n"))
 end
 
 -- For other modules, just in case
@@ -74,7 +75,7 @@ function p.setup(opts)
 	end
 
 	local modes = {
-		["Run"] = "err",
+		["Run"] = "std",
 		["RunErr"] = "err",
 		["RunAll"] = "all",
 	}
