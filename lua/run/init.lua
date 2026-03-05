@@ -56,13 +56,15 @@ local function run(opts)
 
 	local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
 	local input = table.concat(lines, "\n")
+	local null = vim.loop.os_uname().version:match("Windows") and "NUL" or "/dev/null"
 	local redirects = ""
 
 	if mode == "err" then
-		local null = vim.loop.os_uname().version:match("Windows") and "NUL" or "/dev/null"
 		redirects = " 2>&1 > " .. null
 	elseif mode == "all" then
 		redirects = " 2>&1"
+	else
+		redirects = " 2>" .. null
 	end
 
 	local result = vim.fn.system(cmd .. redirects, input)
