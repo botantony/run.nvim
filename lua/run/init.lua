@@ -1,6 +1,7 @@
 local p = {}
 
 p.last_cmd = nil
+p.ouput_buffer = nil
 
 -- TODO: add more interpreters
 p.ft_defaults = {
@@ -20,6 +21,22 @@ local function get_default_cmd()
 	end
 
 	return p.last_cmd
+end
+
+local function get_output_buf()
+	if p.output_buf and vim.api.nvim_buf_is_valid(p.output_buf) then
+		return p.output_buf
+	end
+	return nil
+end
+
+local function find_output_win(buf)
+	for _, win in ipairs(vim.api.nvim_list_wins()) do
+		if vim.api.nvim_win_get_buf(win) == buf then
+			return win
+		end
+	end
+	return nil
 end
 
 local function run(opts)
@@ -49,10 +66,18 @@ local function run(opts)
 	end
 
 	local result = vim.fn.system(cmd .. redirects, input)
-	local buf = vim.api.nvim_create_buf(false, true)
+	local current_win = vim.api.nvim_get_current_win()
+	local buf = get_output_buf()
+	if not buf then
+		buf = vim.api.nvim_create_buf(false, true)
+		p.output_buf = buf
+	end
 
-	vim.cmd("belowright split")
-	vim.api.nvim_win_set_buf(0, buf)
+	local output_win = find_output_win(buf)
+	if not output_win then
+		vim.cmd("belowright split")
+		vim.api.nvim_win_set_buf(0, buf)
+	end
 
 	vim.bo[buf].buftype = "nofile"
 	vim.bo[buf].bufhidden = "wipe"
@@ -60,6 +85,7 @@ local function run(opts)
 	vim.bo[buf].filetype = "runoutput"
 
 	vim.api.nvim_buf_set_lines(buf, 0, -1, false, vim.split(result or "", "\n"))
+	vim.api.nvim_set_current_win(current_win)
 end
 
 -- For other modules, just in case
