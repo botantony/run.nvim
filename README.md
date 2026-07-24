@@ -1,3 +1,5 @@
+## Moved to [Codeberg](https://codeberg.org/botantony/run.nvim)
+----
 Micro plugin for running shell commands on the content of the current buffer.
 
 Type `:Run <command>` or `:Run` and run suggested prompt/type your own command. Use similar `:RunErr` and `:RunAll` commands for stderr and combined stdout/stderr output.
